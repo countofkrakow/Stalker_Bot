@@ -5,7 +5,7 @@ A bot that follows people around.
 
 ### Tasks
 1. Read up on ROS docs and get it running locally (11/1)
-2 Run simulations in Gazebo
+2. Run simulations in Gazebo
 3. Basic turtlebot program running
 4. Sample various motion models/alogrithms (tracking a landmark, following a path of waypoints)
 5. Leg recognition?

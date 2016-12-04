@@ -1,5 +1,7 @@
 
+from random import gauss
 # NOTE: more functions can and probably should be added to improve modularity of code
+
 class people_detector:
     def __init__(self):
         # array of leg objects
@@ -53,7 +55,7 @@ class people_detector:
 class leg:
     # constructor
     # sets up a leg
-    def __init__(self, x, y, var=1):
+    def __init__(self, x, y, var=0.3):
         # set up class constants
         self.NUM_PARTICLES = 100
 
@@ -70,11 +72,14 @@ class leg:
         self.dx = 0
         self.dy = 0
 
-        self.particles = []
-        for i in range(NUM_PARTICLES):
+        # preallocate particles
+        self.particles = [(0, 0) for i in range(self.NUM_PARTICLES)]
+        for i in range(self.NUM_PARTICLES):
             # TODO: Sample particle with x, y mean and given variance from a gaussian
             # particle = ...
-            self.particles.append(particle)
+            px = gauss(x, var)
+            py = gauss(y, var)
+            self.particles[i] = (px, py)
 
     # particle filter step
     # x and y laser measurements of leg are passed in as arguments

@@ -57,6 +57,7 @@ class people_detector:
     # read raw laser scan data
     # return a list of percieved legs
     def read_laser_scan(self, msg):
+        print "hello"
         pass
 
 class leg:

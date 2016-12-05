@@ -140,3 +140,4 @@ class leg:
 if __name__ == '__main__':
     # execution entry point
     pd = people_detector()
+    rospy.spin()

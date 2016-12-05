@@ -1,5 +1,12 @@
 
-from random import gauss
+from random import gauss, randint, uniform
+import math
+
+def normpdf(x, mean, var):
+    denom = (2*math.pi*var)**.5
+    num = math.exp(-(float(x)-float(mean))**2/(2*var))
+    return num/denom
+
 # NOTE: more functions can and probably should be added to improve modularity of code
 
 class people_detector:
@@ -75,8 +82,6 @@ class leg:
         # preallocate particles
         self.particles = [(0, 0) for i in range(self.NUM_PARTICLES)]
         for i in range(self.NUM_PARTICLES):
-            # TODO: Sample particle with x, y mean and given variance from a gaussian
-            # particle = ...
             px = gauss(x, var)
             py = gauss(y, var)
             self.particles[i] = (px, py)
@@ -85,14 +90,51 @@ class leg:
     # x and y laser measurements of leg are passed in as arguments
     # update self.(x, y, dx, dy).  Also update variance based on the particles samples in this step
     def resample(self, x_detected, y_detected):
-        weights = []
-        for i, particle in enumerate(particles):
-            # TODO:
-            # assign weights to particles
-            # x, y = particle
-            # x_weight = sample_from_gaussian(x_detected, x, cls.DEFAULT_VARIANCE)
-            # ...
-            pass
+
+        # TODO: add movements sampling
+
+        # get weights of particles
+        sum_weights = 0
+        weights = [0 for i in range(self.NUM_PARTICLES)]
+        for i, particle in enumerate(self.particles):
+            px, py = particle
+            wx = normpdf(x_detected, self.x, self.variance)
+            wy = normpdf(y_detected, self.y, self.variance)
+            w = wx*wy
+            sum_weights += w
+            weights[i] = sum_weights
+
+        # resample particles
+        resampled_particles = [(0, 0) for i in range(self.NUM_PARTICLES)]
+        for i in range(self.NUM_PARTICLES):
+            # sample random weight
+            r = uniform(0, sum_weights)
+            j = 0
+            while r > weights[j]:
+                j += 1
+            resampled_particles[i] = self.particles[j]
+
+        self.particles = resampled_particles
+
+        # get new x, dx and y, dy values
+        x_sum = 0
+        y_sum = 0
+        for particle in self.particles:
+            x, y = particle
+            x_sum += x
+            y_sum += y
+        new_x = x_sum / self.NUM_PARTICLES
+        new_y = y_sum / self.NUM_PARTICLES
+        self.dx = new_x - self.x
+        self.dy = new_y - self.y
+        self.x = new_x
+        self.y = new_y
+        # TODO: update variance
+
+
+
+
+
 
 if __name__ == '__main__':
     # execution entry point

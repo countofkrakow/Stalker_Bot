@@ -29,10 +29,16 @@ class people_detector:
 
         # array of tuples in the form (leg, leg)
         # if the distance between the two legs of a person gets too large (1 meter?), we take it out of self.people and put both legs back in self.legs
-        self.people = []
+        self.people = [1]
+	rospy.init_node('laser_scan_listener', anonymous=True)
+	rospy.Subscriber("/scan", LaserScan, self.process_scan_message)
+
 
     # this is the callback that is used when retrieving the message
     def process_scan_message(self, msg):
+	legs_to_process = collectProcessRawData(msg.ranges, msg.range_min, msg.range_max, msg.angle_min, msg.angle_max, msg.angle_increment)
+	legs_to_process = convertXY(legs_to_process)
+	print len(legs_to_process)
         # 1. read in laser data
         # observed_legs = read_laser_scan(msg)
 

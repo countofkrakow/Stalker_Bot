@@ -1,11 +1,17 @@
 
 from random import gauss, randint, uniform
+from bisect import bisect_left
 import math
 
 def normpdf(x, mean, var):
     denom = (2*math.pi*var)**.5
     num = math.exp(-(float(x)-float(mean))**2/(2*var))
     return num/denom
+
+def calc_variance(data):
+    mean = math.fsum(data) / len(data)
+    var = math.fsum([(x - mean)**2 for x in data]) / (len(data) - 1)
+    return var
 
 # NOTE: more functions can and probably should be added to improve modularity of code
 
@@ -65,11 +71,17 @@ class leg:
     # sets up a leg
     def __init__(self, x, y, var=0.3):
         # set up class constants
-        self.NUM_PARTICLES = 100
+        self.NUM_PARTICLES = 200
 
-        # placeholder: fill in with something else maybe
-        self.PROPAGATION_NOISE = 1
-        self.variance = var
+        # [-5, 5] degrees in theta coordinates
+        self.THETA_PROPAGATION_NOISE = 2 * math.pi * 5 / 360
+
+        # [-0.2, 0.2] meter positional movement
+        self.R_PROPAGATION_NOISE = 0.2
+
+        # setup variance
+        self.x_var = var
+        self.y_var = var
 
         # position
         self.x = x
@@ -85,7 +97,8 @@ class leg:
         for i in range(self.NUM_PARTICLES):
             px = gauss(x, var)
             py = gauss(y, var)
-            self.particles[i] = (px, py)
+            ptheta = uniform(0, 2 * math.pi)
+            self.particles[i] = (px, py, ptheta)
 
     # particle filter step
     # x and y laser measurements of leg are passed in as arguments
@@ -99,21 +112,35 @@ class leg:
         weights = [0 for i in range(self.NUM_PARTICLES)]
         for i, particle in enumerate(self.particles):
             px, py = particle
-            wx = normpdf(x_detected, self.x, self.variance)
-            wy = normpdf(y_detected, self.y, self.variance)
+            wx = normpdf(x_detected, self.x, self.x_var)
+            wy = normpdf(y_detected, self.y, self.y_var)
             w = wx*wy
             sum_weights += w
             weights[i] = sum_weights
 
-        # resample particles
-        resampled_particles = [(0, 0) for i in range(self.NUM_PARTICLES)]
+        # resample particles and add noisy movement
+        resampled_particles = [None for i in range(self.NUM_PARTICLES)]
         for i in range(self.NUM_PARTICLES):
-            # sample random weight
-            r = uniform(0, sum_weights)
-            j = 0
-            while r > weights[j]:
-                j += 1
-            resampled_particles[i] = self.particles[j]
+
+            # sample random particle
+            sample_weight = uniform(0, sum_weights)
+            idx = bisect_left(weights, sample_weight)
+            px, py, ptheta = self.particles[idx]
+
+            # movement detected
+            r_0 = math.sqrt(self.dx**2 + self.dy**2)
+
+            # movement plus noise
+            r_noise = r_0 + uniform(-self.R_PROPAGATION_NOISE, self.R_PROPAGATION_NOISE)
+
+            # add random rotation
+            theta_noise = ptheta + uniform(-self.THETA_PROPAGATION_NOISE, self.THETA_PROPAGATION_NOISE)
+
+            # add movement plus noise to position
+            x_noise = px + r_noise * math.cos(theta_noise)
+            y_noise = py + r_noise * math.sin(theta_noise)
+
+            resampled_particles[i] = (x_noise, y_noise, theta_noise)
 
         self.particles = resampled_particles
 
@@ -130,10 +157,8 @@ class leg:
         self.dy = new_y - self.y
         self.x = new_x
         self.y = new_y
-        # TODO: update variance
-
-
-
+        self.x_var = calc_variance([p[0] for p in self.particles])
+        self.y_var = calc_variance([p[1] for p in self.particles])
 
 
 

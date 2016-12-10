@@ -1,9 +1,14 @@
-
+import rospy
+from sensor_msgs.msg import LaserScan
 from random import gauss, randint, uniform
 from bisect import bisect_left
 from time import clock
 import math
+from DetectLegsFromRaw import collectProcessRawData
+from DetectLegsFromRaw import convertXY
 
+#to play the rosbag file
+# rosbag play Second.bag,Third.bag
 def normpdf(x, mean, var):
     denom = (2*math.pi*var)**.5
     num = math.exp(-(float(x)-float(mean))**2/(2*var))
@@ -16,6 +21,7 @@ def calc_variance(data):
 
 # hypothesized_leg_location is a position tuple (x, y)
 # known_leg is a leg object
+#this will between 0 and 1
 def calculate_leg_correlation_score(hypothesized_leg_location, known_leg):
     obs_x, obs_y = hypothesized_leg_location
     x_score = normpdf(obs_x, known_leg.x, known_leg.x_var)
@@ -24,11 +30,12 @@ def calculate_leg_correlation_score(hypothesized_leg_location, known_leg):
 
 class people_detector:
     def __init__(self):
+	self.LEG_CORRELATION_THRESH = 0.1
         # array of leg objects
         self.legs = []
 
         # array of tuples in the form (leg, leg)
-        # if the distance between the two legs of a person gets too large (1 meter?), we take it out of self.people and put both legs back in self.legs
+        # if the distance between the two legs of a person gets too large (1 meter?), we take it out of self.people and put both legs back in 		#self.legs
         self.people = [1]
 	rospy.init_node('laser_scan_listener', anonymous=True)
 	rospy.Subscriber("/scan", LaserScan, self.process_scan_message)
@@ -56,7 +63,7 @@ class people_detector:
 
         #   if most_likely_leg:
         #       we have our leg.
-                legs_to_process.append((most_likely_leg, position))
+                #legs_to_process.append((most_likely_leg, position))
         #   else:
         #       add leg described by position as a new leg to self.legs
 

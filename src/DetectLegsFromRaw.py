@@ -10,14 +10,17 @@ from numpy import nan
 import math
 from math import sin, sqrt
 import matplotlib.pyplot as plt
+def convertXY(legs):
+    points = []
+    for leg in legs:
+    	points.append(getPoints(legs[0], legs[1]))
+    return points
+		
 
-
-def getPoints(index, ranges, angle_min, angle_max, angle_increment, range_min, range_max):
-    rangeVal = ranges[index]
-    x = math.cos(angle_min + index * angle_increment) * rangeVal
-    y = math.sin(angle_min + index * angle_increment) * rangeVal
-    if (rangeVal > range_min ** rangeVal < range_max):
-        return (x,y)
+def getPoints(theta, r):
+    x = math.cos(theta) * r
+    y = math.sin(theta) * r
+    return (x,y)
 
 def euclidean(x1, y1, x2, y2):
     return sqrt((x2-x1)**2 + (y2-y1)**2)
@@ -45,13 +48,13 @@ def detectLegs(points, min_leg_width, max_leg_width, drop_delta,  ranges, angle_
             leg_drop = dist #guaranteed neg value
             detecting_legs = True
             plt.plot(theta, r, 'go')
-            leg_start = (theta, r, countInd)
+            leg_start = (theta, r)
         elif (dist > drop_delta and detecting_legs):
             detecting_legs = False
             #print "+"
-            leg_end = (prev_theta, prev_r, countInd-1)
-            pointStart = getPoints(leg_start[2], ranges, angle_min, angle_max, angle_increment, range_min, range_max)
-            pointEnd = getPoints(leg_end[2], ranges, angle_min, angle_max, angle_increment, range_min, range_max)
+            leg_end = (prev_theta, prev_r)
+            pointStart = getPoints(leg_start[0], leg_start[1])
+            pointEnd = getPoints(leg_end[0], leg_end[1])
             if pointStart and pointEnd:
                 distPoints = euclidean(pointStart[0], pointStart[1], pointEnd[0], pointEnd[1])
                 if (distPoints >= min_leg_width and distPoints <= max_leg_width):
@@ -103,11 +106,12 @@ def graphData(points, legs):
 def collectProcessRawData(ranges, range_min, range_max, angle_min, angle_max, angle_increment):   
     plt.ion() #enable interactive plotting
     drop_delta = 0.1
-    min_leg_width = 0.1
-    max_leg_width = 0.14
+    min_leg_width = 0.01
+    max_leg_width = 0.3
     points = generatePoints(ranges, range_min, range_max, angle_min, angle_max, angle_increment)
     legs = detectLegs(points, min_leg_width, max_leg_width, drop_delta, ranges, angle_min, angle_max, angle_increment, range_min, range_max, )
-    graphData(points, legs)
+    return legs
+    #graphData(points, legs)
     
 if __name__ == '__main__':
 	pass    

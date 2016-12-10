@@ -1,6 +1,7 @@
 
 from random import gauss, randint, uniform
 from bisect import bisect_left
+from time import clock
 import math
 
 def normpdf(x, mean, var):
@@ -12,8 +13,6 @@ def calc_variance(data):
     mean = math.fsum(data) / len(data)
     var = math.fsum([(x - mean)**2 for x in data]) / (len(data) - 1)
     return var
-
-# NOTE: more functions can and probably should be added to improve modularity of code
 
 class people_detector:
     def __init__(self):
@@ -88,9 +87,8 @@ class leg:
         self.y = y
 
         # velocity
-        # update this at the resample step
-        self.dx = 0
-        self.dy = 0
+        self.x_vel = 0
+        self.y_vel = 0
 
         # preallocate particles
         self.particles = [(0, 0) for i in range(self.NUM_PARTICLES)]
@@ -100,18 +98,19 @@ class leg:
             ptheta = uniform(0, 2 * math.pi)
             self.particles[i] = (px, py, ptheta)
 
+        self.time = clock()
+
     # particle filter step
     # x and y laser measurements of leg are passed in as arguments
-    # update self.(x, y, dx, dy).  Also update variance based on the particles samples in this step
     def resample(self, x_detected, y_detected):
-
-        # TODO: add movements sampling
+        # get difference in time between runs
+        dt = clock() - self.time
 
         # get weights of particles
         sum_weights = 0
         weights = [0 for i in range(self.NUM_PARTICLES)]
         for i, particle in enumerate(self.particles):
-            px, py = particle
+            px, py, ptheta = particle
             wx = normpdf(x_detected, self.x, self.x_var)
             wy = normpdf(y_detected, self.y, self.y_var)
             w = wx*wy
@@ -128,7 +127,7 @@ class leg:
             px, py, ptheta = self.particles[idx]
 
             # movement detected
-            r_0 = math.sqrt(self.dx**2 + self.dy**2)
+            r_0 = math.sqrt((self.x_vel * dt)**2 + (self.y_vel * dt)**2)
 
             # movement plus noise
             r_noise = r_0 + uniform(-self.R_PROPAGATION_NOISE, self.R_PROPAGATION_NOISE)
@@ -143,24 +142,24 @@ class leg:
             resampled_particles[i] = (x_noise, y_noise, theta_noise)
 
         self.particles = resampled_particles
-
-        # get new x, dx and y, dy values
-        x_sum = 0
-        y_sum = 0
-        for particle in self.particles:
-            x, y = particle
-            x_sum += x
-            y_sum += y
+        x_sum = math.fsum([p[0] for p in self.particles])
+        y_sum = math.fsum([p[1] for p in self.particles])
         new_x = x_sum / self.NUM_PARTICLES
         new_y = y_sum / self.NUM_PARTICLES
-        self.dx = new_x - self.x
-        self.dy = new_y - self.y
+
+        # update velocity
+        self.x_vel = (new_x - self.x) / dt
+        self.y_vel = (new_y - self.y) / dt
+
+        # update position
         self.x = new_x
         self.y = new_y
+
+        # update variance
         self.x_var = calc_variance([p[0] for p in self.particles])
         self.y_var = calc_variance([p[1] for p in self.particles])
 
-
+        self.time = clock()
 
 if __name__ == '__main__':
     # execution entry point

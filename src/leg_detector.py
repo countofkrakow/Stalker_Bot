@@ -72,7 +72,7 @@ class leg:
         # set up class constants
         self.NUM_PARTICLES = 200
 
-        # [-5, 5] degrees in theta coordinates
+        # [-5, 5] degrees in radian coordinates
         self.THETA_PROPAGATION_NOISE = 2 * math.pi * 5 / 360
 
         # [-0.2, 0.2] meter positional movement

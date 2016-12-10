@@ -10,10 +10,12 @@ from numpy import nan
 import math
 from math import sin, sqrt
 import matplotlib.pyplot as plt
+
+#takes in legs in form (theta, r)
 def convertXY(legs):
     points = []
-    for leg in legs:
-    	points.append(getPoints(legs[0], legs[1]))
+    for leg_theta, leg_r in legs:
+    	points.append(getPoints(leg_theta, leg_r))
     return points
 		
 
@@ -109,9 +111,10 @@ def collectProcessRawData(ranges, range_min, range_max, angle_min, angle_max, an
     min_leg_width = 0.01
     max_leg_width = 0.3
     points = generatePoints(ranges, range_min, range_max, angle_min, angle_max, angle_increment)
-    legs = detectLegs(points, min_leg_width, max_leg_width, drop_delta, ranges, angle_min, angle_max, angle_increment, range_min, range_max, )
+    legs = detectLegs(points, min_leg_width, max_leg_width, drop_delta,  ranges, angle_min, angle_max, angle_increment, range_min, range_max)
+    graphData(points, legs)
     return legs
-    #graphData(points, legs)
+    
     
 if __name__ == '__main__':
 	pass    

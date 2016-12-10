@@ -43,9 +43,9 @@ class people_detector:
 
     # this is the callback that is used when retrieving the message
     def process_scan_message(self, msg):
-	legs_to_process = collectProcessRawData(msg.ranges, msg.range_min, msg.range_max, msg.angle_min, msg.angle_max, msg.angle_increment)
-	legs_to_process = convertXY(legs_to_process)
-	print len(legs_to_process)
+	observed_legs = collectProcessRawData(msg.ranges, msg.range_min, msg.range_max, msg.angle_min, msg.angle_max, msg.angle_increment)
+	observed_legs = convertXY(observed_legs)
+	#print len(observed_legs)
         # 1. read in laser data
         # observed_legs = read_laser_scan(msg)
 

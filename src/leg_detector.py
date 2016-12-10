@@ -14,6 +14,14 @@ def calc_variance(data):
     var = math.fsum([(x - mean)**2 for x in data]) / (len(data) - 1)
     return var
 
+# hypothesized_leg_location is a position tuple (x, y)
+# known_leg is a leg object
+def calculate_leg_correlation_score(hypothesized_leg_location, known_leg):
+    obs_x, obs_y = hypothesized_leg_location
+    x_score = normpdf(obs_x, known_leg.x, known_leg.x_var)
+    y_score = normpdf(obs_y, known_leg.y, known_leg.y_var)
+    return x_score * y_score
+
 class people_detector:
     def __init__(self):
         # array of leg objects

@@ -4,8 +4,7 @@ from random import gauss, randint, uniform
 from bisect import bisect_left
 from time import clock
 import math
-from DetectLegsFromRaw import collectProcessRawData
-from DetectLegsFromRaw import convertXY
+from DetectLegsFromRaw import collectProcessRawData, convertXY
 
 #to play the rosbag file
 # rosbag play Second.bag,Third.bag

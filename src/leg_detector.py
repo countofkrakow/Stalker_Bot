@@ -27,44 +27,80 @@ def calculate_leg_correlation_score(hypothesized_leg_location, known_leg):
     y_score = normpdf(obs_y, known_leg.y, known_leg.y_var)
     return x_score * y_score
 
+def calculate_legs_to_person_correlation(leg1, leg2):
+    return calculate_legs_to_person_correlation((leg1.x, leg1.y), leg2) * calculate_legs_to_person_correlation((leg2.x, leg2.y), leg1)
+
 class people_detector:
     def __init__(self):
-	self.LEG_CORRELATION_THRESH = 0.1
+        self.LEG_CORRELATION_THRESH = 0.1
         # array of leg objects
         self.legs = []
 
         # array of tuples in the form (leg, leg)
         # if the distance between the two legs of a person gets too large (1 meter?), we take it out of self.people and put both legs back in 		#self.legs
-        self.people = [1]
-	rospy.init_node('laser_scan_listener', anonymous=True)
-	rospy.Subscriber("/scan", LaserScan, self.process_scan_message)
-
+        self.people = []
+    	rospy.init_node('laser_scan_listener', anonymous=True)
+    	rospy.Subscriber("/scan", LaserScan, self.process_scan_message)
 
     # this is the callback that is used when retrieving the message
+
+    def update_legs(self, observed_legs):
+        legs_to_process = []
+        for leg in self.legs:
+            max_correlation = 0
+            most_likely_obs = None
+            most_likely_idx = None
+
+            for j, obs_leg in enumerate(observed_legs):
+                correlation = calculate_leg_correlation_score(obs_leg, leg)
+                if correlation > max_corelation:
+                    max_correlation = correlation # to compare
+                    most_likely_obs = obs_leg     # to process
+                    most_likely_idx = j           # to delete from observed_legs
+
+            if most_likely_obs:
+                dist = math.sqrt((most_likely_obs[0] - leg.x)**2 + (most_likely_obs[1] - leg.y)**2)
+                if dist <= self.LEG_CORRELATION_THRESH:
+                    legs_to_process.append((leg, most_likely_obs))
+                    del observed_legs[most_likely_idx]
+
+        for obs in observed_legs:
+            legs_to_process.append((None, obs))
+
+        self.legs = []
+        for leg, obs in legs_to_process:
+            if leg:
+                leg.resample(obs[0], obs[1])
+                self.legs.append(leg)
+            else:
+                self.legs.append(leg(obs[0], obs[1]))
+'''
+    def correlate_legs_to_people(self):
+        indices_seen = set()
+        people = []
+        for i, leg in enumerate(self.legs):
+            idx = None
+            max_correlation_score = 0
+
+            if i not in indices_seen:
+                for j in range(j+1, len(self.legs)):
+                    other_leg = self.legs[j]
+                    score = calculate_legs_to_person_correlation(leg, other_leg)
+                    if score > max_correlation_score and j not in indices_seen:
+                        max_correlation_score = score
+                        idx = j
+
+
+
+            indices_seen.add(j)
+'''
+
     def process_scan_message(self, msg):
-	observed_legs = collectProcessRawData(msg.ranges, msg.range_min, msg.range_max, msg.angle_min, msg.angle_max, msg.angle_increment)
-	observed_legs = convertXY(observed_legs)
-	#print len(observed_legs)
         # 1. read in laser data
-        # observed_legs = read_laser_scan(msg)
+    	observed_legs = convertXY(collectProcessRawData(msg.ranges, msg.range_min, msg.range_max, msg.angle_min, msg.angle_max, msg.angle_increment))
 
         # 2.
-        legs_to_process = []
-        # for position in observed_legs:
-        #   max_prob = 0
-        #   most_likely_leg = None
-        #   for leg in self.legs + [leg for person in self.people for leg in person]:
-        #       if distance between the leg and position is below some threshold AND the probability of it being that leg as sampled from the gaussian is larger than max_prob,
-        #       update max_prob to the new higher probability, and set most_likely_leg to leg
-
-        # now that we've gone through all our legs, we can clear out old legs and only keep what we've seen
-        # self.legs = []
-
-        #   if most_likely_leg:
-        #       we have our leg.
-                #legs_to_process.append((most_likely_leg, position))
-        #   else:
-        #       add leg described by position as a new leg to self.legs
+        update_legs(observed_legs)
 
 
         # 3.

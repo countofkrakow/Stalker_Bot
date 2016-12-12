@@ -175,7 +175,7 @@ class Leg:
         # [-5, 5] degrees in radian coordinates
         self.THETA_PROPAGATION_NOISE = 2 * math.pi * 5 / 360
 
-        # [-0.2, 0.2] meter positional movement
+        # [-0.05, 0.05] meter positional movement
         self.R_PROPAGATION_NOISE = 0.05
 
         # setup variance
@@ -199,8 +199,6 @@ class Leg:
             py = gauss(y, var)
             ptheta = uniform(0, 2 * math.pi)
             self.particles[i] = (px, py, ptheta)
-
-        self.time = clock()
 
     # particle filter step
     # x and y laser measurements of leg are passed in as arguments
@@ -259,8 +257,6 @@ class Leg:
         # update variance
         self.x_var = calc_variance([p[0] for p in self.particles])
         self.y_var = calc_variance([p[1] for p in self.particles])
-
-        self.time = clock()
 
 if __name__ == '__main__':
     # execution entry point

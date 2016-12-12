@@ -42,7 +42,7 @@ def plot_legs_after_resample(legs, people, particles):
         x = leg.x
         y = leg.y
         theta, r = getThetaRPoints(x, y)
-        plt.plot(theta, r, 'bo', markersize=5)
+        plt.plot(theta, r, 'bo', label='legs', markersize=5)
 
     # plot people
     for leg1, leg2 in people:
@@ -50,12 +50,12 @@ def plot_legs_after_resample(legs, people, particles):
         theta2, r2 = getThetaRPoints(leg2.x, leg2.y)
         avgTheta = (theta1 + theta2) / 2
         avgHeight = (r1 + r2) / 2
-        plt.plot(avgTheta, avgHeight, 'go', markersize=12)
+        plt.plot(avgTheta, avgHeight, 'go', label='people', markersize=12)
 
     # plot particles
     for x, y in particles:
         theta, r = getThetaRPoints(x, y)
-        plt.plot(theta, r, 'ko', markersize=1)
+        plt.plot(theta, r, 'ko', label='particles', markersize=1)
 
     plt.pause(0.1) #for the 10 seconds
 
@@ -109,8 +109,9 @@ class people_detector:
         # need to be within 10cm of previous position to keep
         self.LEG_CORRELATION_THRESH = 0.1
 
-        # legs need to be withing 30cm to be a person
-        self.PEOPLE_CORRELATION_THRESH = 0.3
+        self.PEOPLE_CORRELATION_MAX = 0.4
+
+        self.PEOPLE_CORRELATION_MIN = 0.05
         # array of leg objects
         self.legs = []
 
@@ -177,7 +178,7 @@ class people_detector:
                     dist = math.sqrt(dx**2 + dy**2)
                     print "distance between legs:"
                     print dist
-                    if dist <= self.PEOPLE_CORRELATION_THRESH:
+                    if dist <= self.PEOPLE_CORRELATION_MAX and dist >= self.PEOPLE_CORRELATION_MIN:
                         indices_seen.add(idx)
                         people.append((leg, self.legs[idx]))
 

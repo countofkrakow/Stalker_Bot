@@ -7,37 +7,23 @@ import math
 from DetectLegsFromRaw import collectProcessRawData, convertXY, getThetaRPoints
 import matplotlib.pyplot as plt
 
-# TODO Amanda
-# set up the parameters however it's easiest for you
-def plot_particles(particles):
-    plt.ion() #enable interactive plotting
-    ax = plt.figure(2)
-    plt.ylabel('height of beam in m')
-    plt.xlabel('angle of laser scan in rad')
-    axes.set_xlim([-2,2])
-    axes.set_ylim([0,10])
-    plt.axis((-1.5, 1.5, 0, 5))
-    plt.axis('image')
-    plt.gcf().clear() #clear plot for next time
-    for x, y, th in particles:
-        theta, r = getThetaRPoints(x, y)
-        plt.plot(theta, r, 'ro')
-
-    plt.pause(0.1) #for the 10 seconds
-
-
 def plot_legs_after_resample(legs, people, particles):
     plt.ion() #enable interactive plotting
     ax = plt.figure(3)
-    plt.ylim(0, 5)
+    plt.ylim(-2, 5)
     plt.xlim(-2, 2)
     #ax.set_autoscale_on(False)
     #plt.axis((-2, 2, 0, 10))
     plt.ylabel('height of beam in m for legs')
     plt.xlabel('angle of laser scan in rad for legs')
+    plt.gcf().clear() #clear plot for next time
+
+    # plot particles
+    for x, y in particles:
+        theta, r = getThetaRPoints(x, y)
+        plt.plot(theta, r, 'ko', label='particles', markersize=1)
 
     # plot legs
-    plt.gcf().clear() #clear plot for next time
     for leg in legs:
         x = leg.x
         y = leg.y
@@ -51,31 +37,6 @@ def plot_legs_after_resample(legs, people, particles):
         avgTheta = (theta1 + theta2) / 2
         avgHeight = (r1 + r2) / 2
         plt.plot(avgTheta, avgHeight, 'go', label='people', markersize=12)
-
-    # plot particles
-    for x, y in particles:
-        theta, r = getThetaRPoints(x, y)
-        plt.plot(theta, r, 'ko', label='particles', markersize=1)
-
-    plt.pause(0.1) #for the 10 seconds
-
-
-def plot_people(people):
-    plt.ion() #enable interactive plotting
-    plt.figure(4)
-    axes = plt.gca()
-    plt.ylim(0, 5)
-    plt.xlim(-2, 2)
-    plt.axis((-2, 2, 0, 10))
-    plt.ylabel('height of beam in m for people')
-    plt.xlabel('angle of laser scan in rad for people')
-    plt.gcf().clear() #clear plot for next time
-
-    plt.pause(0.1) #for the 10 seconds
-
-
-
-
 
 
 #to play the rosbag file
@@ -100,18 +61,15 @@ def calculate_leg_correlation_score(hypothesized_leg_location, known_leg):
     return x_score * y_score
 
 def calculate_legs_to_person_correlation(leg1, leg2):
-    #print "this leg x: " + str(leg1)
-    #print "other leg x: " + str(leg2)
     return calculate_leg_correlation_score((leg1.x, leg1.y), leg2) * calculate_leg_correlation_score((leg2.x, leg2.y), leg1)
 
 class people_detector:
     def __init__(self):
         # need to be within 10cm of previous position to keep
         self.LEG_CORRELATION_THRESH = 0.1
-
         self.PEOPLE_CORRELATION_MAX = 0.4
-
         self.PEOPLE_CORRELATION_MIN = 0.05
+
         # array of leg objects
         self.legs = []
 
@@ -150,6 +108,7 @@ class people_detector:
         for leg, obs in legs_to_process:
             if leg:
                 leg.resample(obs[0], obs[1])
+
                 self.legs.append(leg)
             else:
                 self.legs.append(Leg(obs[0], obs[1]))
@@ -166,19 +125,20 @@ class people_detector:
             if i not in indices_seen:
                 for j in range(i+1, len(self.legs)):
                     other_leg = self.legs[j]
-                    print "this leg: " + str(leg)
-                    print "other leg: " + str(other_leg.x)
+
                     score = calculate_legs_to_person_correlation(leg, other_leg)
                     if score > max_correlation_score and j not in indices_seen:
                         max_correlation_score = score
                         idx = j
                 if idx:
+
                     dx = leg.x - self.legs[idx].x
                     dy = leg.y - self.legs[idx].y
                     dist = math.sqrt(dx**2 + dy**2)
-                    print "distance between legs:"
-                    print dist
+
                     if dist <= self.PEOPLE_CORRELATION_MAX and dist >= self.PEOPLE_CORRELATION_MIN:
+                        print("Leg found: (%f, %f) (%f, %f)" % (leg.x, leg.y, self.legs[idx].x, self.legs[idx].y))
+                        print "distance between legs: " + str(dist)
                         indices_seen.add(idx)
                         people.append((leg, self.legs[idx]))
 
@@ -190,37 +150,16 @@ class people_detector:
     	observed_legs = convertXY(radial_legs)
         observed_points = convertXY(radial_points)
 
-        print "Legs before update: " + str(len(self.legs))
         self.update_legs(observed_legs)
-        print "Legs after update: " + str(len(self.legs))
 
         self.correlate_legs_to_people()
 
-        print "omg self.people: " + str(self.people)
-        #print("Legs: " + str(self.legs))
-        #print("People: " + str(self.people))
-
-
-        # TODO: Insert leg plotting code here
-            # read self.legs <list of Leg objects>
-            # read self.people <List of Leg object tuples>
-            # plot each in a separate plot
-
-            # TODO functions to fill in
-        #plot_particles([particle for leg in self.legs for particle in leg.particles])
-        #legs_tr = convertThetaR([(leg.x, leg.y) for leg in self.legs])
-        #people_tr = convertThetaR([((leg1.x + leg2.x / 2), (leg1.y + leg2.y / 2)) for leg1, leg2 in self.people])
+        print("Legs in self.legs:")
+        for leg in self.legs:
+            print('\t(%f, %f)' % (leg.x, leg.y))
 
         particles = [(x, y) for leg in self.legs for x, y, _ in leg.particles]
         plot_legs_after_resample(self.legs, self.people, particles)
-        #plot_people(self.people)
-
-
-    # read raw laser scan data
-    # return a list of percieved legs
-    def read_laser_scan(self, msg):
-        print "hello"
-        pass
 
 class Leg:
     # constructor

@@ -173,10 +173,10 @@ class Leg:
         self.NUM_PARTICLES = 50
 
         # [-5, 5] degrees in radian coordinates
-        self.THETA_PROPAGATION_NOISE = 2 * math.pi * 5 / 360
+        self.THETA_PROPAGATION_NOISE = 2 * math.pi * 10 / 360
 
         # [-0.2, 0.2] meter positional movement
-        self.R_PROPAGATION_NOISE = 0.2
+        self.R_PROPAGATION_NOISE = 0.05
 
         # setup variance
         self.x_var = var

@@ -17,7 +17,7 @@ def convertXY(legs):
     for leg_theta, leg_r in legs:
     	points.append(getPoints(leg_theta, leg_r))
     return points
-		
+
 
 def getPoints(theta, r):
     x = math.cos(theta) * r
@@ -41,11 +41,11 @@ def detectLegs(points, min_leg_width, max_leg_width, drop_delta,  ranges, angle_
             prev_r = r
         elif prev_r != inf and r == inf:
             dist = 2*drop_delta
-            
+
         else:
             dist = r - prev_r
-            
-            
+
+
         if (dist < (-1 * drop_delta)):
             leg_drop = dist #guaranteed neg value
             detecting_legs = True
@@ -81,7 +81,7 @@ def generatePoints(ranges, range_min, range_max, angle_min, angle_max, angle_inc
         count = count + 1
     return points
 
-#graphs the data in real time 
+#graphs the data in real time
 def graphData(points, legs):
     redPoints = []
     bluePoints = []
@@ -94,7 +94,7 @@ def graphData(points, legs):
     plt.ylabel('height of beam in m')
     plt.xlabel('angle of laser scan in rad')
     plt.pause(0.1) #for the 10 seconds
-    print "Size of legs: " + str(len(legs))
+    # print "Size of legs: " + str(len(legs))
     '''
     #now we want to remove the point for the next iteration
     for redPoint in redPoints:
@@ -105,7 +105,7 @@ def graphData(points, legs):
     '''
     plt.gcf().clear()
 
-def collectProcessRawData(ranges, range_min, range_max, angle_min, angle_max, angle_increment):   
+def collectProcessRawData(ranges, range_min, range_max, angle_min, angle_max, angle_increment):
     plt.ion() #enable interactive plotting
     drop_delta = 0.1
     min_leg_width = 0.01
@@ -114,7 +114,7 @@ def collectProcessRawData(ranges, range_min, range_max, angle_min, angle_max, an
     legs = detectLegs(points, min_leg_width, max_leg_width, drop_delta,  ranges, angle_min, angle_max, angle_increment, range_min, range_max)
     graphData(points, legs)
     return legs
-    
-    
+
+
 if __name__ == '__main__':
-	pass    
+	pass

@@ -28,11 +28,17 @@ def calculate_leg_correlation_score(hypothesized_leg_location, known_leg):
     return x_score * y_score
 
 def calculate_legs_to_person_correlation(leg1, leg2):
-    return calculate_legs_to_person_correlation((leg1.x, leg1.y), leg2) * calculate_legs_to_person_correlation((leg2.x, leg2.y), leg1)
+    #print "this leg x: " + str(leg1)
+    #print "other leg x: " + str(leg2)
+    return calculate_leg_correlation_score((leg1.x, leg1.y), leg2) * calculate_leg_correlation_score((leg2.x, leg2.y), leg1)
 
 class people_detector:
     def __init__(self):
+        # need to be within 10cm of previous position to keep
         self.LEG_CORRELATION_THRESH = 0.1
+
+        # legs need to be withing 50cm to be a person
+        self.PEOPLE_CORRELATION_THRESH = 0.5
         # array of leg objects
         self.legs = []
 
@@ -53,7 +59,7 @@ class people_detector:
 
             for j, obs_leg in enumerate(observed_legs):
                 correlation = calculate_leg_correlation_score(obs_leg, leg)
-                if correlation > max_corelation:
+                if correlation > max_correlation:
                     max_correlation = correlation # to compare
                     most_likely_obs = obs_leg     # to process
                     most_likely_idx = j           # to delete from observed_legs
@@ -73,47 +79,56 @@ class people_detector:
                 leg.resample(obs[0], obs[1])
                 self.legs.append(leg)
             else:
-                self.legs.append(leg(obs[0], obs[1]))
-'''
+                self.legs.append(Leg(obs[0], obs[1]))
+
     def correlate_legs_to_people(self):
         indices_seen = set()
         people = []
+        print "start correlating people"
         for i, leg in enumerate(self.legs):
+            # find the index of the other leg that corresponds to it
             idx = None
             max_correlation_score = 0
 
             if i not in indices_seen:
-                for j in range(j+1, len(self.legs)):
+                for j in range(i+1, len(self.legs)):
                     other_leg = self.legs[j]
+                    print "this leg: " + str(leg)
+                    print "other leg: " + str(other_leg.x)
                     score = calculate_legs_to_person_correlation(leg, other_leg)
                     if score > max_correlation_score and j not in indices_seen:
                         max_correlation_score = score
                         idx = j
+                if idx:
+                    dx = leg.x - self.legs[idx].x
+                    dy = leg.y - self.legs[idx].y
+                    dist = math.sqrt(dx**2 + dy**2)
+                    print "distance between legs:"
+                    print dist
+                    if dist <= self.PEOPLE_CORRELATION_THRESH:
+                        indices_seen.add(idx)
+                        people.append((leg, self.legs[idx]))
 
-
-
-            indices_seen.add(j)
-'''
+        self.people = people
 
     def process_scan_message(self, msg):
         # 1. read in laser data
     	observed_legs = convertXY(collectProcessRawData(msg.ranges, msg.range_min, msg.range_max, msg.angle_min, msg.angle_max, msg.angle_increment))
 
-        # 2.
-        update_legs(observed_legs)
+        print "Legs before update: " + str(len(self.legs))
+        self.update_legs(observed_legs)
+        print "Legs after update: " + str(len(self.legs))
 
+        self.correlate_legs_to_people()
 
-        # 3.
-        #   for leg in legs_to_process:
-        #       update the leg position accorsing to the position measurement and add it back to self.legs
-        #       use the leg.resample function for this
+        print "omg self.people: " + str(self.people)
+        #print("Legs: " + str(self.legs))
+        #print("People: " + str(self.people))
+        # TODO: Insert leg plotting code here
+            # read self.legs <list of Leg objects>
+            # read self.people <List of Leg object tuples>
+            # plot each in a separate plot
 
-        # 4.
-        #  for leg in self.legs:
-        #       do nested loop to find two closest legs that are at most some distance apart. Add them to self.people
-        #       repeat until either there's no more legs to process or they're all far enough apart that we know that none of the legs left belong to the same person
-
-        # 5. publish list of people positions to some topic...
 
     # read raw laser scan data
     # return a list of percieved legs
@@ -121,7 +136,7 @@ class people_detector:
         print "hello"
         pass
 
-class leg:
+class Leg:
     # constructor
     # sets up a leg
     def __init__(self, x, y, var=0.3):

@@ -101,11 +101,11 @@ def graphData(points, legs):
     plt.xlabel('angle of laser scan in rad')
     plt.gcf().clear() #clear plot for next time
     for point in points:
-        redPoint, = plt.plot(point[0], point[1], 'ro')
+        redPoint, = plt.plot(point[0], point[1], 'r.', markersize=6)
     for newP in legs:
-        bluePoint, = plt.plot(newP[0], newP[1], 'bo')
+        bluePoint, = plt.plot(newP[0], newP[1], 'b*', markersize=14)
 
-    plt.pause(0.01) #for the 10 seconds
+    plt.pause(0.001) #for the 10 seconds
     # print "Size of legs: " + str(len(legs))
 
 

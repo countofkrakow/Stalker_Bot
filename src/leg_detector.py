@@ -29,6 +29,10 @@ def plot_legs_after_resample(legs, people, particles):
         y = leg.y
         theta, r = getThetaRPoints(x, y)
         plt.plot(theta, r, 'bo', label='legs', markersize=5)
+        if leg.x_vel and leg.y_vel:
+            dtheta, dr = getThetaRPoints(leg.x_vel, leg.y_vel)
+            plt.arrow(theta, r, dtheta/3, dr/3, fc="k", ec="k", head_width=0.03, head_length=0.07)
+
 
     # plot people
     for leg1, leg2 in people:
@@ -66,8 +70,8 @@ def calculate_legs_to_person_correlation(leg1, leg2):
 class people_detector:
     def __init__(self):
         # need to be within 10cm of previous position to keep
-        self.LEG_CORRELATION_THRESH = 0.1
-        self.PEOPLE_CORRELATION_MAX = 0.4
+        self.LEG_CORRELATION_THRESH = 0.2
+        self.PEOPLE_CORRELATION_MAX = 0.5
         self.PEOPLE_CORRELATION_MIN = 0.05
 
         # array of leg objects

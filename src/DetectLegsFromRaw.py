@@ -112,7 +112,7 @@ def graphData(points, legs):
 def collectProcessRawData(ranges, range_min, range_max, angle_min, angle_max, angle_increment):
     # plt.ion() #enable interactive plotting
     drop_delta = 0.1
-    min_leg_width = 0.01
+    min_leg_width = 0.09
     max_leg_width = 0.3
     points = generatePoints(ranges, range_min, range_max, angle_min, angle_max, angle_increment)
     legs = detectLegs(points, min_leg_width, max_leg_width, drop_delta,  ranges, angle_min, angle_max, angle_increment, range_min, range_max)

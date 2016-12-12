@@ -173,7 +173,7 @@ class Leg:
         self.NUM_PARTICLES = 50
 
         # [-5, 5] degrees in radian coordinates
-        self.THETA_PROPAGATION_NOISE = 2 * math.pi * 10 / 360
+        self.THETA_PROPAGATION_NOISE = 2 * math.pi * 5 / 360
 
         # [-0.2, 0.2] meter positional movement
         self.R_PROPAGATION_NOISE = 0.05
@@ -185,6 +185,8 @@ class Leg:
         # position
         self.x = x
         self.y = y
+
+        self.dt = 0.1
 
         # velocity
         self.x_vel = 0
@@ -204,7 +206,6 @@ class Leg:
     # x and y laser measurements of leg are passed in as arguments
     def resample(self, x_detected, y_detected):
         # get difference in time between runs
-        dt = clock() - self.time
 
         # get weights of particles
         sum_weights = 0
@@ -227,7 +228,7 @@ class Leg:
             px, py, ptheta = self.particles[idx]
 
             # movement detected
-            r_0 = math.sqrt((self.x_vel * dt)**2 + (self.y_vel * dt)**2)
+            r_0 = math.sqrt((self.x_vel * self.dt)**2 + (self.y_vel * self.dt)**2)
 
             # movement plus noise
             r_noise = r_0 + uniform(-self.R_PROPAGATION_NOISE, self.R_PROPAGATION_NOISE)
@@ -248,8 +249,8 @@ class Leg:
         new_y = y_sum / self.NUM_PARTICLES
 
         # update velocity
-        self.x_vel = (new_x - self.x) / dt
-        self.y_vel = (new_y - self.y) / dt
+        self.x_vel = (new_x - self.x) / self.dt
+        self.y_vel = (new_y - self.y) / self.dt
 
         # update position
         self.x = new_x

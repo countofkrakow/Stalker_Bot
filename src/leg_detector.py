@@ -9,48 +9,65 @@ import matplotlib.pyplot as plt
 
 # TODO Amanda
 # set up the parameters however it's easiest for you
-def plot_particles(self, particles):
+def plot_particles(particles):
     plt.ion() #enable interactive plotting
-    plt.figure(2)
-    for particle in particles:
-	x = particle[0]
-	y = particle[1]
-	theta, r = getThetaRPoints(x, y)
-	plt.plot(theta, r, 'ro')
-	plt.ylabel('height of beam in m')
-    	plt.xlabel('angle of laser scan in rad')
-    	plt.pause(0.1) #for the 10 seconds
-	plt.gcf().clear() #clear plot for next time
+    ax = plt.figure(2)
+    plt.ylabel('height of beam in m')
+    plt.xlabel('angle of laser scan in rad')
+    axes.set_xlim([-2,2])
+    axes.set_ylim([0,10])
+    plt.axis((-1.5, 1.5, 0, 5))
+    plt.axis('image')
+    plt.gcf().clear() #clear plot for next time
+    for x, y, th in particles:
+        theta, r = getThetaRPoints(x, y)
+        plt.plot(theta, r, 'ro')
+
+    plt.pause(0.1) #for the 10 seconds
+
 
 def plot_legs_after_resample(legs):
     plt.ion() #enable interactive plotting
-    plt.figure(3)
+    ax = plt.figure(3)
+    plt.ylim(0, 5)
+    plt.xlim(-2, 2)
+    #ax.set_autoscale_on(False)
+    #plt.axis((-2, 2, 0, 10))
+    plt.axis('image')
+    plt.ylabel('height of beam in m for legs')
+    plt.xlabel('angle of laser scan in rad for legs')
+
+    plt.gcf().clear() #clear plot for next time
     for leg in legs:
-	x = leg.x
-	y = leg.y
-	theta, r = getThetaRPoints(x, y)
-	plt.plot(theta, r, 'bo')
-	plt.ylabel('height of beam in m for legs')
-    	plt.xlabel('angle of laser scan in rad for legs')
-    	plt.pause(0.1) #for the 10 seconds
-	plt.gcf().clear() #clear plot for next time
+        x = leg.x
+        y = leg.y
+        theta, r = getThetaRPoints(x, y)
+        plt.plot(theta, r, 'bo')
+
+    plt.pause(0.1) #for the 10 seconds
+
 
 def plot_people(people):
     plt.ion() #enable interactive plotting
     plt.figure(4)
-    for person in people:
-	leg1 = person[0]
-	leg2 = person[1]
-	theta1, r1 = getThetaRPoints(leg1.x, leg1.y)
-	theta2, r2 = getThetaRPoints(leg2.x, leg2.y)
-	avgTheta = (theta1 + theta2) / 2
-	avgHeight = (r1 + r2) / 2
-	plt.plot(avgTheta, avgHeight, 'go')
-	plt.ylabel('height of beam in m for people')
-    	plt.xlabel('angle of laser scan in rad for people')
-    	plt.pause(0.1) #for the 10 seconds
-	plt.gcf().clear() #clear plot for next time
-	
+    axes = plt.gca()
+    axes.set_xlim([-2,2])
+    axes.set_ylim([0,10])
+    plt.axis((-2, 2, 0, 10))
+    plt.ylabel('height of beam in m for people')
+    plt.xlabel('angle of laser scan in rad for people')
+    plt.gcf().clear() #clear plot for next time
+    for leg1, leg2 in people:
+        theta1, r1 = getThetaRPoints(leg1.x, leg1.y)
+        theta2, r2 = getThetaRPoints(leg2.x, leg2.y)
+        avgTheta = (theta1 + theta2) / 2
+        avgHeight = (r1 + r2) / 2
+        plt.plot(avgTheta, avgHeight, 'go')
+    plt.pause(0.1) #for the 10 seconds
+
+
+
+
 
 
 #to play the rosbag file
@@ -179,9 +196,9 @@ class people_detector:
             # plot each in a separate plot
 
             # TODO functions to fill in
-        #plot_particles(particles)
+        #plot_particles([particle for leg in self.legs for particle in leg.particles])
         plot_legs_after_resample(self.legs)
-	#plot_people(self.people)
+        #plot_people(self.people)
 
 
     # read raw laser scan data

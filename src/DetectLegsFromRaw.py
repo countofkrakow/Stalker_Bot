@@ -10,7 +10,6 @@ from numpy import nan
 import math
 from math import sin, sqrt
 import matplotlib.pyplot as plt
-from scipy.optimize import fsolve
 
 #takes in legs in form (theta, r)
 #spits out legs in form x, y
@@ -58,7 +57,7 @@ def detectLegs(points, min_leg_width, max_leg_width, drop_delta,  ranges, angle_
         if (dist < (-1 * drop_delta)):
             leg_drop = dist #guaranteed neg value
             detecting_legs = True
-            plt.plot(theta, r, 'go')
+            #plt.plot(theta, r, 'go')
             leg_start = (theta, r)
         elif (dist > drop_delta and detecting_legs):
             detecting_legs = False
@@ -103,18 +102,18 @@ def graphData(points, legs):
 	bluePoints.append(bluePoint)
     plt.ylabel('height of beam in m')
     plt.xlabel('angle of laser scan in rad')
-    plt.pause(0.1) #for the 10 seconds
+    plt.pause(0.01) #for the 10 seconds
     # print "Size of legs: " + str(len(legs))
     plt.gcf().clear() #clear plot for next time
 
 def collectProcessRawData(ranges, range_min, range_max, angle_min, angle_max, angle_increment):
-    plt.ion() #enable interactive plotting
+    # plt.ion() #enable interactive plotting
     drop_delta = 0.1
     min_leg_width = 0.01
     max_leg_width = 0.3
     points = generatePoints(ranges, range_min, range_max, angle_min, angle_max, angle_increment)
     legs = detectLegs(points, min_leg_width, max_leg_width, drop_delta,  ranges, angle_min, angle_max, angle_increment, range_min, range_max)
-    graphData(points, legs)
+    #graphData(points, legs)
     return legs
 
 

@@ -19,6 +19,11 @@ def convertXY(legs):
     	points.append(getPoints(leg_theta, leg_r))
     return points
 
+def convertThetaR(legs):
+    points = []
+    for x, y in legs:
+        points.append(getThetaRPoints(x, y))
+    return points
 
 #get the theta, r representation of x and y points
 def getThetaRPoints(leg_x, leg_y):
@@ -92,19 +97,17 @@ def generatePoints(ranges, range_min, range_max, angle_min, angle_max, angle_inc
 #graphs the data in real time
 def graphData(points, legs):
     plt.figure(1)
-    redPoints = []
-    bluePoints = []
-    for point in points:
-        redPoint, = plt.plot(point[0], point[1], 'ro')
-	redPoints.append(redPoint)
-    for newP in legs:
-        bluePoint, = plt.plot(newP[0], newP[1], 'bo')
-	bluePoints.append(bluePoint)
     plt.ylabel('height of beam in m')
     plt.xlabel('angle of laser scan in rad')
+    plt.gcf().clear() #clear plot for next time
+    for point in points:
+        redPoint, = plt.plot(point[0], point[1], 'ro')
+    for newP in legs:
+        bluePoint, = plt.plot(newP[0], newP[1], 'bo')
+
     plt.pause(0.01) #for the 10 seconds
     # print "Size of legs: " + str(len(legs))
-    plt.gcf().clear() #clear plot for next time
+
 
 def collectProcessRawData(ranges, range_min, range_max, angle_min, angle_max, angle_increment):
     # plt.ion() #enable interactive plotting
@@ -113,8 +116,8 @@ def collectProcessRawData(ranges, range_min, range_max, angle_min, angle_max, an
     max_leg_width = 0.3
     points = generatePoints(ranges, range_min, range_max, angle_min, angle_max, angle_increment)
     legs = detectLegs(points, min_leg_width, max_leg_width, drop_delta,  ranges, angle_min, angle_max, angle_increment, range_min, range_max)
-    #graphData(points, legs)
-    return legs
+    graphData(points, legs)
+    return legs, points
 
 
 if __name__ == '__main__':

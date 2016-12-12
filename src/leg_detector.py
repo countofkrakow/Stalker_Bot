@@ -26,23 +26,36 @@ def plot_particles(particles):
     plt.pause(0.1) #for the 10 seconds
 
 
-def plot_legs_after_resample(legs):
+def plot_legs_after_resample(legs, people, particles):
     plt.ion() #enable interactive plotting
     ax = plt.figure(3)
     plt.ylim(0, 5)
     plt.xlim(-2, 2)
     #ax.set_autoscale_on(False)
     #plt.axis((-2, 2, 0, 10))
-    plt.axis('image')
     plt.ylabel('height of beam in m for legs')
     plt.xlabel('angle of laser scan in rad for legs')
 
+    # plot legs
     plt.gcf().clear() #clear plot for next time
     for leg in legs:
         x = leg.x
         y = leg.y
         theta, r = getThetaRPoints(x, y)
-        plt.plot(theta, r, 'bo')
+        plt.plot(theta, r, 'bo', markersize=5)
+
+    # plot people
+    for leg1, leg2 in people:
+        theta1, r1 = getThetaRPoints(leg1.x, leg1.y)
+        theta2, r2 = getThetaRPoints(leg2.x, leg2.y)
+        avgTheta = (theta1 + theta2) / 2
+        avgHeight = (r1 + r2) / 2
+        plt.plot(avgTheta, avgHeight, 'go', markersize=12)
+
+    # plot particles
+    for x, y in particles:
+        theta, r = getThetaRPoints(x, y)
+        plt.plot(theta, r, 'ko', markersize=1)
 
     plt.pause(0.1) #for the 10 seconds
 
@@ -51,18 +64,13 @@ def plot_people(people):
     plt.ion() #enable interactive plotting
     plt.figure(4)
     axes = plt.gca()
-    axes.set_xlim([-2,2])
-    axes.set_ylim([0,10])
+    plt.ylim(0, 5)
+    plt.xlim(-2, 2)
     plt.axis((-2, 2, 0, 10))
     plt.ylabel('height of beam in m for people')
     plt.xlabel('angle of laser scan in rad for people')
     plt.gcf().clear() #clear plot for next time
-    for leg1, leg2 in people:
-        theta1, r1 = getThetaRPoints(leg1.x, leg1.y)
-        theta2, r2 = getThetaRPoints(leg2.x, leg2.y)
-        avgTheta = (theta1 + theta2) / 2
-        avgHeight = (r1 + r2) / 2
-        plt.plot(avgTheta, avgHeight, 'go')
+
     plt.pause(0.1) #for the 10 seconds
 
 
@@ -101,8 +109,8 @@ class people_detector:
         # need to be within 10cm of previous position to keep
         self.LEG_CORRELATION_THRESH = 0.1
 
-        # legs need to be withing 50cm to be a person
-        self.PEOPLE_CORRELATION_THRESH = 0.5
+        # legs need to be withing 30cm to be a person
+        self.PEOPLE_CORRELATION_THRESH = 0.3
         # array of leg objects
         self.legs = []
 
@@ -177,7 +185,9 @@ class people_detector:
 
     def process_scan_message(self, msg):
         # 1. read in laser data
-    	observed_legs = convertXY(collectProcessRawData(msg.ranges, msg.range_min, msg.range_max, msg.angle_min, msg.angle_max, msg.angle_increment))
+        radial_legs, radial_points = collectProcessRawData(msg.ranges, msg.range_min, msg.range_max, msg.angle_min, msg.angle_max, msg.angle_increment)
+    	observed_legs = convertXY(radial_legs)
+        observed_points = convertXY(radial_points)
 
         print "Legs before update: " + str(len(self.legs))
         self.update_legs(observed_legs)
@@ -197,7 +207,11 @@ class people_detector:
 
             # TODO functions to fill in
         #plot_particles([particle for leg in self.legs for particle in leg.particles])
-        plot_legs_after_resample(self.legs)
+        #legs_tr = convertThetaR([(leg.x, leg.y) for leg in self.legs])
+        #people_tr = convertThetaR([((leg1.x + leg2.x / 2), (leg1.y + leg2.y / 2)) for leg1, leg2 in self.people])
+
+        particles = [(x, y) for leg in self.legs for x, y, _ in leg.particles]
+        plot_legs_after_resample(self.legs, self.people, particles)
         #plot_people(self.people)
 
 
@@ -212,7 +226,7 @@ class Leg:
     # sets up a leg
     def __init__(self, x, y, var=0.3):
         # set up class constants
-        self.NUM_PARTICLES = 200
+        self.NUM_PARTICLES = 50
 
         # [-5, 5] degrees in radian coordinates
         self.THETA_PROPAGATION_NOISE = 2 * math.pi * 5 / 360

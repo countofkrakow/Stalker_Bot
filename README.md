@@ -41,6 +41,17 @@ python leg_detector.py
 ### Some Notes
 Make sure you run the python script first before starting the bag file
 
+### RVIZ
+You can also view the raw laser data from either your bag file or the turtle bot with rviz
+Just type "rviz" in your terminal and it should open up
+If not, you may need to install it. 
+
+You may not see anything on the screen so make sure:
+For Fixed Frame you are using base_footprint
+You add Laser Scan /scan 
+Note: you won't see this topic if you don't have your robot or bag file running
+You can also add TF marker for where the robot is
+
 ### Resource Links
 https://github.com/jstnhuang/cse481c_tutorials/wiki/How-to-run-the-leg-detector-on-the-Turtlebot
 

@@ -10,8 +10,10 @@ from numpy import nan
 import math
 from math import sin, sqrt
 import matplotlib.pyplot as plt
+from scipy.optimize import fsolve
 
 #takes in legs in form (theta, r)
+#spits out legs in form x, y
 def convertXY(legs):
     points = []
     for leg_theta, leg_r in legs:
@@ -19,6 +21,13 @@ def convertXY(legs):
     return points
 
 
+#get the theta, r representation of x and y points
+def getThetaRPoints(leg_x, leg_y):
+    theta = math.atan(leg_y/leg_x)
+    r = sqrt(leg_x**2 + leg_y**2)
+    return (theta, r)
+
+#get the x an dy representations of theta,r points
 def getPoints(theta, r):
     x = math.cos(theta) * r
     y = math.sin(theta) * r
@@ -83,6 +92,7 @@ def generatePoints(ranges, range_min, range_max, angle_min, angle_max, angle_inc
 
 #graphs the data in real time
 def graphData(points, legs):
+    plt.figure(1)
     redPoints = []
     bluePoints = []
     for point in points:
@@ -95,15 +105,7 @@ def graphData(points, legs):
     plt.xlabel('angle of laser scan in rad')
     plt.pause(0.1) #for the 10 seconds
     # print "Size of legs: " + str(len(legs))
-    '''
-    #now we want to remove the point for the next iteration
-    for redPoint in redPoints:
-        redPoint.remove()
-    for newP in bluePoints:
-	print bluePoint
-        bluePoint.remove()
-    '''
-    plt.gcf().clear()
+    plt.gcf().clear() #clear plot for next time
 
 def collectProcessRawData(ranges, range_min, range_max, angle_min, angle_max, angle_increment):
     plt.ion() #enable interactive plotting

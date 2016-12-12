@@ -4,18 +4,54 @@ from random import gauss, randint, uniform
 from bisect import bisect_left
 from time import clock
 import math
-from DetectLegsFromRaw import collectProcessRawData, convertXY
+from DetectLegsFromRaw import collectProcessRawData, convertXY, getThetaRPoints
+import matplotlib.pyplot as plt
 
 # TODO Amanda
 # set up the parameters however it's easiest for you
 def plot_particles(self, particles):
-    pass
+    plt.ion() #enable interactive plotting
+    plt.figure(2)
+    for particle in particles:
+	x = particle[0]
+	y = particle[1]
+	theta, r = getThetaRPoints(x, y)
+	plt.plot(theta, r, 'ro')
+	plt.ylabel('height of beam in m')
+    	plt.xlabel('angle of laser scan in rad')
+    	plt.pause(0.1) #for the 10 seconds
+	plt.gcf().clear() #clear plot for next time
 
-def plot_people(self, people):
-    pass
+def plot_legs_after_resample(legs):
+    plt.ion() #enable interactive plotting
+    plt.figure(3)
+    for leg in legs:
+	x = leg.x
+	y = leg.y
+	theta, r = getThetaRPoints(x, y)
+	plt.plot(theta, r, 'bo')
+	plt.ylabel('height of beam in m for legs')
+    	plt.xlabel('angle of laser scan in rad for legs')
+    	plt.pause(0.1) #for the 10 seconds
+	plt.gcf().clear() #clear plot for next time
 
-def plot_legs_after_resample(self, legs):
-    pass
+def plot_people(people):
+    plt.ion() #enable interactive plotting
+    plt.figure(4)
+    for person in people:
+	leg1 = person[0]
+	leg2 = person[1]
+	theta1, r1 = getThetaRPoints(leg1.x, leg1.y)
+	theta2, r2 = getThetaRPoints(leg2.x, leg2.y)
+	avgTheta = (theta1 + theta2) / 2
+	avgHeight = (r1 + r2) / 2
+	plt.plot(avgTheta, avgHeight, 'go')
+	plt.ylabel('height of beam in m for people')
+    	plt.xlabel('angle of laser scan in rad for people')
+    	plt.pause(0.1) #for the 10 seconds
+	plt.gcf().clear() #clear plot for next time
+	
+
 
 #to play the rosbag file
 # rosbag play Second.bag,Third.bag
@@ -143,9 +179,9 @@ class people_detector:
             # plot each in a separate plot
 
             # TODO functions to fill in
-            # plot_particles(particles)
-            # plot_people(people)
-            # plot_legs_after_resample(legs)
+        #plot_particles(particles)
+        plot_legs_after_resample(self.legs)
+	#plot_people(self.people)
 
 
     # read raw laser scan data

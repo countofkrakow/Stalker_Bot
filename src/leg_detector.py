@@ -6,6 +6,17 @@ from time import clock
 import math
 from DetectLegsFromRaw import collectProcessRawData, convertXY
 
+# TODO Amanda
+# set up the parameters however it's easiest for you
+def plot_particles(self, particles):
+    pass
+
+def plot_people(self, people):
+    pass
+
+def plot_legs_after_resample(self, legs):
+    pass
+
 #to play the rosbag file
 # rosbag play Second.bag,Third.bag
 def normpdf(x, mean, var):
@@ -124,10 +135,17 @@ class people_detector:
         print "omg self.people: " + str(self.people)
         #print("Legs: " + str(self.legs))
         #print("People: " + str(self.people))
+
+
         # TODO: Insert leg plotting code here
             # read self.legs <list of Leg objects>
             # read self.people <List of Leg object tuples>
             # plot each in a separate plot
+
+            # TODO functions to fill in
+            # plot_particles(particles)
+            # plot_people(people)
+            # plot_legs_after_resample(legs)
 
 
     # read raw laser scan data
